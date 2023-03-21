@@ -8,7 +8,6 @@ from time import sleep
 
 import vk_api as VK
 import requests
-import urllib.request
 import VK_SPA_Settings
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -25,6 +24,8 @@ headers = {"User-Agent": ua.ie}
 
 
 class BlockedAccountAlert(QThread):
+    """ Запуск звукового уведомления """
+
     thread_blocked_account = QtCore.pyqtSignal()
 
     def run(self):
@@ -32,6 +33,8 @@ class BlockedAccountAlert(QThread):
 
 
 class CheckConnection(QThread):
+    """ Проверяка доступа в интернет """
+
     thread_run_check = QtCore.pyqtSignal(str)
     reconnect = QtCore.pyqtSignal(str)
 
@@ -39,7 +42,7 @@ class CheckConnection(QThread):
         super().__init__()
 
     def get_connection(self):
-        """ Проверяет доступ в интернет """
+        """ Проверка соединения """
         try:
             result = requests.get('http://www.google.com')
             return result.status_code
@@ -63,14 +66,17 @@ class CheckConnection(QThread):
                             break
                         n += 1
                         if n in [10, 20, 30, 40, 50, 60, 70]:
-                            self.reconnect.emit('Не можем установить соединение...Наш совет попробовать зайти позже, для выхода нажмите кнопку справа')
+                            self.reconnect.emit(
+                                'Не можем установить соединение...Наш совет попробовать зайти позже, для выхода нажмите кнопку справа')
                         sleep(2)
                 sleep(7)
         except Exception:
             pass
 
+
 class RunLoadAuth(QThread):
     """ Класс потока авторизации пользователя """
+
     thread_run_auth = QtCore.pyqtSignal()
     thread_set_visual_info_auth = QtCore.pyqtSignal(dict)
     thread_error_proxy = QtCore.pyqtSignal(dict)
@@ -203,7 +209,6 @@ class ErrorWindow(QMessageBox):
             self.error_wind.setText(self.base_info)
             self.error_wind.setWindowIcon(QIcon(f"{abspath_params}/Picture_gui/error.png"))
             self.error_wind.setIcon(QMessageBox.Warning)
-            # self.error_wind.setStandardButtons(QMessageBox.Ok)
             if self.detail_info:
                 self.error_wind.setDetailedText(str(self.detail_info))
         except Exception as err_set:
@@ -211,6 +216,7 @@ class ErrorWindow(QMessageBox):
 
 
 class VkSpaMain(VkSpaSkeleton, QMainWindow):
+    """ Класс основного потока окна """
 
     def __init__(self):
         super().__init__()
@@ -245,6 +251,7 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
     def visual_display_captcha(self, path=None):
         """ При возникновении капчи в потоке авторизации, вызывается эта функция и ей передается изображение капчи.
             В основном интерфейсе появляется изображение и строка ввода капчи. """
+
         self.label_status.setText('Нужен ввод капчи')
         self.label_status_picture.setPixmap(QtGui.QPixmap(
             f'{self.abspath_params}/Picture_gui/orange_status.jpg'))
@@ -269,6 +276,9 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
 
         self.button_authUser.clicked.connect(lambda: self.gif_start_auth())
         self.button_authUser.clicked.connect(lambda: self.auth_user())
+        self.PAGE_add_account.addAccount_pushButton_add_account.clicked.connect(lambda: self.update_combo_acc_proxy())
+        self.chooseAcc_comboBox_main.currentTextChanged.connect(lambda: self.change_acc_comboBox())
+        self.chooseProxy_comboBox_main.currentTextChanged.connect(lambda: self.fixed_proxy())
 
         """ StackWidget - переключение между виджетами"""
         self.label_logo.clicked.connect(
@@ -283,11 +293,6 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
         self.likes_photo_and_post_my_friends_button.clicked.connect(lambda: self.stackedWidget_VKSPA.setCurrentIndex(8))
         self.neew_feed_walk_button.clicked.connect(lambda: self.stackedWidget_VKSPA.setCurrentIndex(9))
         self.pump_accaunt_pushButton.clicked.connect(lambda: self.stackedWidget_VKSPA.setCurrentIndex(10))
-
-        """ Все остальное """
-        self.PAGE_add_account.addAccount_pushButton_add_account.clicked.connect(lambda: self.update_combo_acc_proxy())
-        self.chooseAcc_comboBox_main.currentTextChanged.connect(lambda: self.change_acc_comboBox())
-        self.chooseProxy_comboBox_main.currentTextChanged.connect(lambda: self.fixed_proxy())
 
     def fixed_proxy(self):
         """ Фиксирует прокси для последующего его использования """
@@ -309,6 +314,7 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
 
     def do_button_auth_enable(self):
         """ Делает кнопку авторизации доступной для нажатия, если авторизация прошла неудачно"""
+
         self.login = ''
         self.change_acc_comboBox()
 
@@ -333,6 +339,7 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
 
     def run_err_window_proxy(self, dict_err):
         """ В случае если прокси не валиден запускает окно с ошибкой из потока авторизации """
+
         self.do_button_auth_enable()
         return self.error_window_main(dict_err)
 
@@ -374,6 +381,7 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
 
     def close_window_error_connect(self, result_trying):
         """ Закрывает окно с ошибкой отсутствия интернета """
+
         try:
             self.button_next_step.disconnect()
         except Exception:
@@ -455,6 +463,7 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
 
     def play_blocked_acc(self):
         """ Звуковое увдеомление, если аккаунт забанен """
+
         self.media_player = QMediaPlayer()
         self.url = QUrl.fromLocalFile(f"{self.abspath_params}/Alert/blocked_account.wav")
         self.content = QMediaContent(self.url)
@@ -463,10 +472,12 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
 
     def launch_blocked_threads(self):
         """ Запуск звукового уведомления """
+
         self.blocked_needed.start()
 
     def load_avatar(self, url):
         """ Функиция для загрузки аватарки. Возвращает путь расположения аватарки """
+
         url_ava = f'{url}'
         img = urllib.request.urlopen(url_ava).read()
         name_avatar = 'img_avatar' + str(url)[50:57]
@@ -477,6 +488,7 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
 
     def set_info_account(self, dict_sett_acc):
         """ Функция для графического отображения результатов авторизации """
+
         try:
             if dict_sett_acc['url_avatar'] is not None:
                 try:
