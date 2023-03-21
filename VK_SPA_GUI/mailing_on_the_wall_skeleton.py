@@ -154,8 +154,7 @@ class RunSpamWall(QThread):
             self.progress_mailing_log.emit(f'Авторизация пользователя прошла успешно, id - {id_account}')
             return self.vk_main
         except Exception as err_auth:
-            # if 'Captcha' in str(err_auth):
-            #     pass
+
             if 'remixsid' in str(err_auth):
                 return 'Аккаунт заблокировали'
             elif 'Bad password' in str(err_auth):
@@ -297,11 +296,9 @@ class RunSpamWall(QThread):
 
             result_writing_post = self.write_post(line_id=line_id, text=text, attachment=text_attachments,
                                                   number_spam_wall=number_log)
-
             number_log += 1
             quantity_post -= 1
 
-            sleep(7)
             if 'Error. Аккаунт заблокировали' == str(result_writing_post):
                 break
             if 'Error' in str(result_writing_post):
@@ -598,6 +595,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
     def visual_display_captcha(self, path=None):
         """ При возникновении капчи в потоке авторизации, вызывается эта функция и ей передается изображение капчи.
             В основном интерфейсе появляется изображение и строка ввода капчи. """
+
         self.label_captcha.setText('Нужен ввод капчи')
         self.label_captcha.show()
         self.InputCaptcha.show()
@@ -618,6 +616,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
         os.startfile(f'{params_path}/{file}')
 
     def functionSPAM(self):
+        """ Все связи между кнопками и действиями """
 
         self.add_newText_button.clicked.connect(lambda: self.add_new_text_spam())
         self.update_text_list_button.clicked.connect(lambda: self.update_text_spam())
@@ -626,7 +625,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
         self.view_list_group_button.clicked.connect(lambda: self.view_groups_list_spam())
         self.change_list_group_button.clicked.connect(lambda: self.change_list_group_spam())
         self.stop_spam_button.clicked.connect(lambda: self.press_forced_stop_spam_wall())
-        self.start_spam_button.clicked.connect(lambda: self.spam())
+        self.start_spam_button.clicked.connect(lambda: self.mailing())
         self.use_auto_change_account_checkBox.stateChanged.connect(lambda: self.show_button_settings())
         self.press_captcha_button.clicked.connect(lambda: self.press_captcha())
 
@@ -776,7 +775,8 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
 
         return list_for_thread
 
-    def spam(self):
+    def mailing(self):
+
         self.clear_log()
         result_check_settings = self.check_settings(interval=(self.from_interval_spinBox.value(),
                                                               self.to_interval_spinBox.value()),
@@ -790,7 +790,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
         text_spam_wall = first_text_spam_wall
         text_attachments_spam = self.get_attachments_text(self.choose_attachments_comboBox.currentText())
 
-        # Ниже условие для простого спама на 1 акк
+        # Ниже условие для простой рассылки на 1 акк
         self.mailing_log_text_browser.append(' Начали рассылку '.center(65, '-'))
 
         if self.use_standard_spam_checkBox.isChecked() and not self.use_auto_change_account_checkBox.isChecked():
@@ -808,7 +808,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
                                            texts=[first_text_spam_wall, text_spam_wall, text_attachments_spam],
                                            type_spam='simple')
 
-        # Ниже условие для спама на несколько аккаунтов
+        # Ниже условие для рассылки на несколько аккаунтов
         elif self.use_auto_change_account_checkBox.isChecked() and not self.use_standard_spam_checkBox.isChecked():
             if self.connect_log_and_prx:  # Если есть связь между лог и прокси
 
@@ -823,8 +823,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
                                                type_spam='multi_and_different_proxies',
                                                dict_logpass_for_multispam=self.dict_log_prx)
 
-            # Если нет связи между лог и прокси
-            elif self.connect_log_and_prx is False:
+            elif self.connect_log_and_prx is False:            # Если нет связи между лог и прокси
 
                 list_for_thread = self.check_settings_count_acc_multispam()
 
@@ -939,7 +938,6 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
                     prx.show()
                     y += 35
             elif not self.connection_checkBox.isChecked():
-                # self.conn_log_and_prx = False
                 self.sett_window.resize(400, 400)
                 self.sett_window_VKSPA.setGeometry(QtCore.QRect(10, 10, 400, 400))
                 self.save_sett_pushButton.setGeometry(QtCore.QRect(30, 330, 150, 40))
@@ -972,18 +970,18 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
                         y += 35
                 y = 140
                 max = 0
-                for a in quant_acc:
+                for quant in quant_acc:
                     if max < 18:
-                        a = QtWidgets.QComboBox(self.sett_window_VKSPA)
-                        a.setGeometry(QtCore.QRect(200, y, 170, 25))
-                        a.show()
-                        self.list_rpx.append(a)
+                        quant = QtWidgets.QComboBox(self.sett_window_VKSPA)
+                        quant.setGeometry(QtCore.QRect(200, y, 170, 25))
+                        quant.show()
+                        self.list_rpx.append(quant)
                         max += 1
                         with open(f"{VK_SPA_Settings.abspath_params}/PROXY.txt", 'r') as prx:
                             proxy = prx.readlines()
                             for elem in proxy:
                                 if elem != '\n':
-                                    a.addItem(elem.replace('\n', ''))
+                                    quant.addItem(elem.replace('\n', ''))
                         y += 35
 
             self.sett_window.resize(400, y + 100)
@@ -996,7 +994,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
                                         err_detail=f'Ошибка при открытии combo с аккаунтами\n{err_open_combo}')
 
     def window_settings(self):
-        """ Открытие окна с настройками мультиспама """
+        """ Открытие окна с настройками мульти рассылки """
         try:
             self.sett_window = QtWidgets.QDialog()
             self.sett_window.setModal(True)
@@ -1013,7 +1011,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
             self.connection_checkBox.setGeometry(QtCore.QRect(10, 107, 220, 20))
             self.connection_checkBox.stateChanged.connect(lambda: self.open_connect_log_and_proxy())
 
-            """ Установка значения кол-ва аккаунтов для мульти спама """
+            """ Установка значения кол-ва аккаунтов для мульти рассылки """
             maximum = self.return_info_quantity_acc()[0]  # Возвращает кол-во аккаунтов из файла
             self.count_acc = QtWidgets.QSpinBox(self.sett_window_VKSPA)
             self.count_acc.setMaximum(maximum)
@@ -1022,7 +1020,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
             self.count_acc.setValue(self.count_acc_multispam)
             self.count_acc_lable = QtWidgets.QLabel(self.sett_window_VKSPA)
             self.count_acc_lable.setGeometry(QtCore.QRect(60, 31, 170, 16))
-            self.count_acc_lable.setText('Кол-во аккаунтов для спама')
+            self.count_acc_lable.setText('Кол-во аккаунтов для рассылки')
 
             """ Установка значения для выбора номера аккаунта, с которого начнется рассылка """
             self.with_first_acc_lable = QtWidgets.QLabel(self.sett_window_VKSPA)
@@ -1077,12 +1075,12 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
                     for log in self.list_log:
                         self.dict_log_prx[log.currentText()] = self.list_rpx[i].currentText()
                         i += 1
-                self.disposable_list.clear()  # Очищает список с временной подвязкой лог к прокси, для того, чтоб в будущем
+                self.disposable_list.clear()  # Очищает список с временной подвязкой лог к прокси, чтоб в будущем
                 # когда он будет создаваться, создавался с нуля и КО ВСЕМ ЕГО ОБЪЕКТАМ можно было нормально обращаться
             elif self.connection_checkBox.isChecked() is False:
                 self.connect_log_and_prx = False
             else:
-                print('Без привязки лог к прокси')
+                pass
             self.count_acc_multispam = int(count)
             self.with_first_acc_multispam = int(first)
         except Exception as err_save_sett:
