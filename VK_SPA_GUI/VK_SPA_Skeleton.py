@@ -12,7 +12,7 @@ import comment_spam_skeleton
 import parsing_friend_skeleton
 import parsing_group_for_spam_skeleton
 import parsing_members_skeleton
-import spam_on_the_wall_skeleton
+import mailing_on_the_wall_skeleton
 import likes_users_posts_and_photo_skeleton
 import news_feed_walk_skeleton
 import pump_account_skeleton
