@@ -8,7 +8,7 @@ from PyQt5.QtGui import QIcon
 import hello_page_skeleton
 import add_account_skeleton
 import add_proxy_skeleton
-import comment_spam_skeleton
+import comment_mailing_skeleton
 import parsing_friend_skeleton
 import parsing_group_for_spam_skeleton
 import parsing_members_skeleton
