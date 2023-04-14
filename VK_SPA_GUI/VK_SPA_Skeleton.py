@@ -69,12 +69,12 @@ class VkSpaSkeleton(object):
 
         """ Page SPAM ON THE WALL. Index in stackedWidget № 6 """
 
-        self.PAGE_spam_on_the_wall = spam_on_the_wall_skeleton.UiVkSpaSpamOnTheWall_SKELETON()
+        self.PAGE_spam_on_the_wall = mailing_on_the_wall_skeleton.UiVkSpaSpamOnTheWall_SKELETON()
         self.stackedWidget_VKSPA.addWidget(self.PAGE_spam_on_the_wall.central_widget_SPAM_ON_THE_WALL)
 
         """ Page SPAM COMMENT. Index in stackedWidget № 7 """
 
-        self.PAGE_comment_spam = comment_spam_skeleton.UiVkSpaSpamComment_SKELETON()
+        self.PAGE_comment_spam = comment_mailing_skeleton.UiVkSpaSpamComment_SKELETON()
         self.stackedWidget_VKSPA.addWidget(self.PAGE_comment_spam.central_widget_SPAM_COMMENT)
 
         """ Page LIKES ON THE WALL USERS. Index in stackedWidget № 8 """
