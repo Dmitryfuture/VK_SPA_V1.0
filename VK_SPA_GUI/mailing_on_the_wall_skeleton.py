@@ -251,16 +251,16 @@ class RunSpamWall(QThread):
         except Exception as error_spam:
 
             if 'Access to adding post denied' in str(error_spam):
-                return f'Error. <a> href=https://vk.com/wall-{int(line_id)}> Группа</a> закрыта. Нельзя опубликовать запись'
+                return f'Error0. <a> href=https://vk.com/wall-{int(line_id)}> Группа</a> закрыта. Нельзя опубликовать запись'
             elif 'Too' in str(error_spam):
-                return 'Error. Слишком много публикаций с этого аккаунта,надо сменить аккаунт, рассылка остановлена'
+                return 'Error1. Слишком много публикаций с этого аккаунта,надо сменить аккаунт, рассылка остановлена'
             elif 'user is blocked' in str(error_spam):
-                return 'Error. Аккаунт заблокировали'
+                return 'Error2. Аккаунт заблокировали'
             elif '[15]' in str(error_spam):
-                return f'Error. В группе <a href=http://vk.com/club{int(line_id)}>https://vk.com/wall-{int(line_id)}</a> ' \
+                return f'Error3. В группе <a href=http://vk.com/club{int(line_id)}>https://vk.com/wall-{int(line_id)}</a> ' \
                        f'не удалось опубликовать запись. Вы должны быть администратором сообщества!'
             else:
-                return f'Error. В группе <a href=http://vk.com/club{int(line_id)}>https://vk.com/wall-{int(line_id)}</a> ' \
+                return f'Error4. В группе <a href=http://vk.com/club{int(line_id)}>https://vk.com/wall-{int(line_id)}</a> ' \
                        f'не удалось опубликовать запись\n из-за ошибки {error_spam}'
 
     def simple_spam(self, list_groups, first_text, text, quantity_post, text_attachments, interval):
@@ -299,11 +299,11 @@ class RunSpamWall(QThread):
             number_log += 1
             quantity_post -= 1
 
-            if 'Error. Аккаунт заблокировали' == str(result_writing_post):
-                break
-            if 'Error' in str(result_writing_post):
+            if 'Error1' in str(result_writing_post) or 'Error2' in str(result_writing_post):
                 self.progress_mailing_log.emit(result_writing_post)
-                continue
+                break
+
+            self.progress_mailing_log.emit(result_writing_post)
 
             self.progress_mailing_log.emit(f"{result_writing_post} {result_join}")
 
