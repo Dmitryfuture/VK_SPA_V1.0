@@ -303,8 +303,6 @@ class RunSpamWall(QThread):
                 self.progress_mailing_log.emit(result_writing_post)
                 break
 
-            self.progress_mailing_log.emit(result_writing_post)
-
             self.progress_mailing_log.emit(f"{result_writing_post} {result_join}")
 
             sleep(randint(*interval))
