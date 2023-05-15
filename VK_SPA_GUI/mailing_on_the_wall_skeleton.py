@@ -58,6 +58,7 @@ class RunSpamWall(QThread):
         self.list_acc = list_acc
 
     def change_position_in_file_group(self, counter_rz):
+        """ Меняет список групп, те группы, по которым была рассылка попадают в конец списка """
         with open(f'{VK_SPA_Settings.abspath_params}/File_group_for_spam_wall.txt',
                   'r') as ff:
             first_count = []
@@ -267,10 +268,16 @@ class RunSpamWall(QThread):
 
         number_log = 1
         for line_id in list_groups[:quantity_post]:
+            if not VK_SPA_Settings.connection:
+                while not VK_SPA_Settings.connection:
+                    print(1)
+                    sleep(1)
+                    # pass
 
             self.syntax_highlighter.emit()
 
             if self.STOP_SPAM_WALL:
+                self.change_position_in_file_group(number_log)
                 self.progress_mailing_log.emit(' Рассылка закончена пользователем '.center(65, '-'))
                 return
 
@@ -279,6 +286,7 @@ class RunSpamWall(QThread):
                     for i in self.news_feed_walk():
                         self.progress_mailing_log.emit(i)
                         if i == ' Рассылка закончена пользователем '.center(65, '-'):
+                            self.change_position_in_file_group(number_log)
                             return
 
             if self.settings[1]:
@@ -286,6 +294,7 @@ class RunSpamWall(QThread):
                     try:
                         text = self.apply_randomaizer(number=number_log, first_text=first_text)
                     except Exception as err:
+                        self.change_position_in_file_group(number_log)
                         print(err)
 
             if quantity_post == 0:
@@ -359,8 +368,10 @@ class RunSpamWall(QThread):
                                  text=self.texts[1],
                                  quantity_post=self.info_spam['quantity'], text_attachments=self.texts[2],
                                  interval=self.info_spam['interval'])
+
         if self.STOP_SPAM_WALL is False:
             self.progress_mailing_log.emit(' Рассылка закончена '.center(65, '-'))
+
         self.stop.emit()
 
 
@@ -707,6 +718,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
             self.list_groups_tableView.setTextInteractionFlags(Qt.NoTextInteraction)
 
     def check_settings(self, interval, name_text, list_groups):
+        """ Проверка входящих условий рассылки """
 
         if not self.use_standard_spam_checkBox.isChecked() and not self.use_auto_change_account_checkBox.isChecked():
             return 'Вы не выбрали тип рассылки!'
@@ -733,21 +745,29 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
                 'quantity': self.quantity_post_spinBox.value()}
 
     def open_file_text(self, name):
+        """ Возвраащет текст рассылки """
+
         with open(f'{params_path}/Text_for_spam/{name}.txt', 'r', encoding="utf-8") as f:
             text_spam_wall = f.read()
         return text_spam_wall
 
     def open_file_attachment(self, name):
+        """ Возвраащет текст прикрепленного изображения к рассылке """
+
         with open(f'{params_path}/Attachments_for_spam/{name}.txt', 'r', encoding="utf-8") as f:
             text_attachments_spam = f.read()
         return text_attachments_spam
 
     def open_file_with_id_groups(self):
+        """ Возвраащет список групп для рассылки """
+
         with open(file=f'{params_path}/File_group_for_spam_wall.txt', mode='r', encoding='utf8') as file_id:
             group_id = file_id.readlines()
         return group_id
 
     def get_attachments_text(self, name):
+        """ Возвраащет текст прикрепленного изображения к рассылке, если он не выбран, берется введенный текст """
+
         if name != '-------':
             text_attachments_spam = self.open_file_attachment(name)
         else:
@@ -755,6 +775,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
         return text_attachments_spam
 
     def check_settings_count_acc_multispam(self):
+        """ Проверка условий при мультирассылке """
 
         with open(file=f'{params_path}/ACCOUNTS.txt', mode='r') as file:
             list_accounts = [elem.replace('\n', '') for elem in file.readlines()]
@@ -774,6 +795,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
         return list_for_thread
 
     def mailing(self):
+        """ Функция запуска рассылки """
 
         self.clear_log()
         result_check_settings = self.check_settings(interval=(self.from_interval_spinBox.value(),

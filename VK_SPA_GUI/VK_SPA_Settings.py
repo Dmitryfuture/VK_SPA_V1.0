@@ -12,6 +12,8 @@ captcha_input_text = ''
 last_used_proxy = ''
 """ result_check_proxy - result check proxy on valid """
 result_check_proxy = None
+""" check connection """
+connection = True
 
 abspath_VK_SPA_Settings = os.getcwd().replace("\\", '/')
 abspath_params = abspath_VK_SPA_Settings.replace("VK_SPA_GUI", 'params')

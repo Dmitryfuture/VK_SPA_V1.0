@@ -57,11 +57,13 @@ class CheckConnection(QThread):
             while True:
                 res = self.get_connection()
                 if res != 200:
+                    VK_SPA_Settings.connection = False
                     self.thread_run_check.emit(str(res))
                     n = 0
                     while True:
                         res_again = self.get_connection()
                         if res_again == 200:
+                            VK_SPA_Settings.connection = True
                             self.reconnect.emit('Соединение установленно! Для продолжения работы нажмите кнопку слева')
                             break
                         n += 1
@@ -410,6 +412,7 @@ class VkSpaMain(VkSpaSkeleton, QMainWindow):
                                          'галочку в настройках - "Использовать прокси", Настоятельно рекомендуем вам ' \
                                          'использовать прокси во избежания частого бана аккаунтов'
                 self.gif_stop()
+                self.do_button_auth_enable()
                 return {'text_error': 'Не выбран прокси!', 'err_detail': none_proxy_description}
 
         check_list = ['', None, '---------']
@@ -592,3 +595,5 @@ if __name__ == "__main__":
             error = ErrorWindow(base_info='Произошел сбой в программе', detail_info=f'{str(err)}')
             error.set_settings()
             error()
+
+# TODO Доделать фичу с отключением интернета
