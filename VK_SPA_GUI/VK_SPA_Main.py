@@ -595,5 +595,3 @@ if __name__ == "__main__":
             error = ErrorWindow(base_info='Произошел сбой в программе', detail_info=f'{str(err)}')
             error.set_settings()
             error()
-
-# TODO Доделать фичу с отключением интернета

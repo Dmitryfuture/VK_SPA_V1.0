@@ -43,7 +43,7 @@ class RunThreadSearchGroup(QThread):
             return None
         try:
             self.window.setText('Начали поиск...')
-            result_query_search = self.vk_method.groups.search(q=query, type=['group', 'page'], count=800, sort=6)
+            result_query_search = self.vk_method.groups.search(q=query, type='group', count=800, sort=6)
 
             for i in range(len(result_query_search['items'])):  # Для каждой группы в словаре ищем определенную инфу
                 all_group.append(result_query_search['items'][i]['id'])

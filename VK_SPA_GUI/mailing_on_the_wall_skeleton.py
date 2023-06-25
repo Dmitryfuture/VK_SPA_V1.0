@@ -30,6 +30,7 @@ class RunSpamWall(QThread):
     progress_mailing_log = QtCore.pyqtSignal(str)
     stop = QtCore.pyqtSignal()
     syntax_highlighter = QtCore.pyqtSignal()
+    syntax_highlighter_end = QtCore.pyqtSignal()
 
     def __init__(self, type_spam, vision_for_captcha, settings, info_spam, texts, proxy=None, log_pass=None,
                  vk_method=None, dict_logpass_for_multispam=None, list_acc=None):
@@ -247,38 +248,37 @@ class RunSpamWall(QThread):
             self.vk_method.likes.add(type='post', owner_id=f'-{int(line_id)}', item_id=f'{post["post_id"]}')
 
             return f'{number_spam_wall})В {time_public} опубликована запись в ' \
-                   f'<a href=https://vk.com/club{int(line_id)}> группе</a>.\n'
+                   f'<a title=https://vk.com/wall-{int(line_id)} href=https://vk.com/club{int(line_id)}> группе</a>.\n'
 
         except Exception as error_spam:
 
             if 'Access to adding post denied' in str(error_spam):
-                return f'Error0. <a> href=https://vk.com/wall-{int(line_id)}> Группа</a> закрыта. Нельзя опубликовать запись'
+                return f'Error0. <a title=https://vk.com/wall-{int(line_id)} ' \
+                       f'href=https://vk.com/wall-{int(line_id)}> Группа</a> закрыта. Нельзя опубликовать запись'
             elif 'Too' in str(error_spam):
                 return 'Error1. Слишком много публикаций с этого аккаунта,надо сменить аккаунт, рассылка остановлена'
             elif 'user is blocked' in str(error_spam):
                 return 'Error2. Аккаунт заблокировали'
             elif '[15]' in str(error_spam):
-                return f'Error3. В группе <a href=http://vk.com/club{int(line_id)}>https://vk.com/wall-{int(line_id)}</a> ' \
+                return f'Error3. В <a https://vk.com/wall-{int(line_id)} href=http://vk.com/club{int(line_id)}>группе </a> ' \
                        f'не удалось опубликовать запись. Вы должны быть администратором сообщества!'
             else:
-                return f'Error4. В группе <a href=http://vk.com/club{int(line_id)}>https://vk.com/wall-{int(line_id)}</a> ' \
+                return f'Error4. В группе <a https://vk.com/wall-{int(line_id)} href=http://vk.com/club{int(line_id)}>https://vk.com/wall-{int(line_id)}</a> ' \
                        f'не удалось опубликовать запись\n из-за ошибки {error_spam}'
 
     def simple_spam(self, list_groups, first_text, text, quantity_post, text_attachments, interval):
 
         number_log = 1
         for line_id in list_groups[:quantity_post]:
+
             if not VK_SPA_Settings.connection:
                 while not VK_SPA_Settings.connection:
-                    print(1)
                     sleep(1)
-                    # pass
-
-            self.syntax_highlighter.emit()
 
             if self.STOP_SPAM_WALL:
                 self.change_position_in_file_group(number_log)
                 self.progress_mailing_log.emit(' Рассылка закончена пользователем '.center(65, '-'))
+                self.syntax_highlighter_end.emit()
                 return
 
             if self.settings[0]:
@@ -287,6 +287,7 @@ class RunSpamWall(QThread):
                         self.progress_mailing_log.emit(i)
                         if i == ' Рассылка закончена пользователем '.center(65, '-'):
                             self.change_position_in_file_group(number_log)
+                            self.syntax_highlighter_end.emit()
                             return
 
             if self.settings[1]:
@@ -295,11 +296,14 @@ class RunSpamWall(QThread):
                         text = self.apply_randomaizer(number=number_log, first_text=first_text)
                     except Exception as err:
                         self.change_position_in_file_group(number_log)
-                        print(err)
+                        print(f"Error in function simple_spam - {err}")
 
             if quantity_post == 0:
                 self.change_position_in_file_group(number_log)
+                self.syntax_highlighter_end.emit()
                 break
+
+            self.syntax_highlighter.emit()
 
             result_join = self.join_to_group(line_id=line_id) if self.settings[2] else ''
 
@@ -310,6 +314,7 @@ class RunSpamWall(QThread):
 
             if 'Error1' in str(result_writing_post) or 'Error2' in str(result_writing_post):
                 self.progress_mailing_log.emit(result_writing_post)
+                self.syntax_highlighter_end.emit()
                 break
 
             self.progress_mailing_log.emit(f"{result_writing_post} {result_join}")
@@ -318,6 +323,8 @@ class RunSpamWall(QThread):
 
         if self.STOP_SPAM_WALL is False:
             self.change_position_in_file_group(number_log - 1)
+
+        self.syntax_highlighter_end.emit()
 
     def run(self):
         """ Запуск потока """
@@ -711,7 +718,6 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
 
     def view_groups_list_spam(self):
         """ Показывает список групп в отдельном поле """
-
         with open(f'{params_path}/File_group_for_spam_wall.txt', 'r') as f:
             text = f.read()
             self.list_groups_tableView.setText(str(text))
@@ -796,7 +802,7 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
 
     def mailing(self):
         """ Функция запуска рассылки """
-
+        self.view_list_group_button.setEnabled(False)
         self.clear_log()
         result_check_settings = self.check_settings(interval=(self.from_interval_spinBox.value(),
                                                               self.to_interval_spinBox.value()),
@@ -867,6 +873,12 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
         self.thread_spam.start()
         self.thread_spam.stop.connect(self.end)
         self.thread_spam.syntax_highlighter.connect(self.highlighter_line_id_group)
+        self.thread_spam.syntax_highlighter_end.connect(self.clear_list_table)
+
+    def clear_list_table(self):
+        self.list_groups_tableView.clear()
+        self.view_list_group_button.setEnabled(True)
+        self.count_highlighter = 0
 
     def clear_log(self):
         """ Очистка поля рассылки """
@@ -1191,3 +1203,4 @@ class UiVkSpaSpamOnTheWall_SKELETON(object):
             error_wind.setDetailedText(str(err_detail))
         error_wind.exec_()
         return error_wind
+
